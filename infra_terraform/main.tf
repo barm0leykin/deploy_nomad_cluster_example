@@ -1,13 +1,14 @@
 ## AWS
 provider "aws" {
-  profile = "default"
-  region  = var.region
+  profile                 = "terraform"
+  region                  = var.aws.region
+  shared_credentials_file = var.aws.credentials_file
 }
 
 resource "aws_default_vpc" "main" {
-  enable_dns_support               = "true"
-  enable_dns_hostnames             = "true"
-  enable_classiclink               = "false"
+  enable_dns_support   = "true"
+  enable_dns_hostnames = "true"
+  enable_classiclink   = "false"
   tags = {
     Name = "main"
   }
@@ -31,7 +32,7 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = "false"
   availability_zone       = "eu-central-1a" #var.region #"us-east-1a"
   tags = {
-      Name            = "private_subnet"
+    Name = "private_subnet"
   }
 }
 resource "aws_subnet" "private_subnet" {
@@ -40,23 +41,35 @@ resource "aws_subnet" "private_subnet" {
   map_public_ip_on_launch = "false"
   availability_zone       = "eu-central-1a" #var.region #"us-east-1a"
   tags = {
-      Name            = "private_subnet"
+    Name = "private_subnet"
   }
 }
 
 resource "aws_key_pair" "root" {
-  key_name   = "root"
-  public_key = var.public_ssh_key
+  key_name   = "id_rsa"
+  #public_key = var.public_ssh_key
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 
 # EC2 instance
 resource "aws_instance" "host" {
-  for_each = var.hosts
+  for_each                    = var.hosts
   associate_public_ip_address = true
-  ami           = each.value.ami
-  instance_type = each.value.instance_type 
-  key_name      = aws_key_pair.root.key_name
+  ami                         = each.value.ami
+  instance_type               = each.value.instance_type
+  key_name                    = aws_key_pair.root.key_name
+  // security_groups      = [ "aws_security_group.websrv_firewall.id" ]
+  provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      host        = self.public_ip
+      user        = "ubuntu"
+      private_key = file("~/.ssh/id_rsa")
+    }
+    # Задаём hostname
+    inline = [
+      "apt -y update && apt install -y python",
+      "/usr/bin/hostnamectl set-hostname ${each.value.hostname}"
+    ]
+  }
 }
-
-#########################
-# output 

@@ -1,0 +1,7 @@
+# using: ansible-galaxy install -r requirements.yml --force
+roles:
+    # Install a role from Ansible Galaxy.
+    - barm0leykin.python
+    - barm0leykin.common
+    - barm0leykin.iptables
+    - geerlingguy.docker

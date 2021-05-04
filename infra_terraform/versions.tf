@@ -1,12 +1,12 @@
 terraform {
-  required_version = ">= 0.13"
+  required_version = ">= 0.15"
   # remote terraform state on Terraform Cloud. Token: ~/.terraformrc
-  backend "remote" {
-    organization = "barm0leykino"
-    workspaces {
-      name = "nomad-cluster"
-    }
-  }
+  // backend "remote" {
+  //   organization = "barm0leykino"
+  //   workspaces {
+  //     name = "nomad-cluster"
+  //   }
+  // }
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -15,8 +15,8 @@ terraform {
     cloudflare = {
       source = "cloudflare/cloudflare"
     }
-    tfe = {
-      source = "hashicorp/tfe"
-    }
+    // tfe = {
+    //   source = "hashicorp/tfe"
+    // }
   }
 }

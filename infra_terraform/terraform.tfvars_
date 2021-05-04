@@ -1,0 +1,2 @@
+CF_TOKEN   = file("~/keys/cf_dns_token")
+cloudflare = { api_key = file("~/keys/cf_dns_token") }

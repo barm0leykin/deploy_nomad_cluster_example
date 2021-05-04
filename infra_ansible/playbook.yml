@@ -1,0 +1,54 @@
+- name: PYTHON_INSTALL
+  hosts: all
+  strategy: linear # отключаем mitogen до установки питона
+  gather_facts: no # нужно отключить предварительный сбор сведений, т.к. сначала дожны отработать задачи pre_tasks
+  become: yes
+
+  # если на хосте не еустановлен ключ, подключаемся по паролю
+  pre_tasks:
+
+    - name: Include extra vars
+      include_vars:
+        file: ~/.ssh/ansible_vars
+        name: ext_vars
+
+    - name: Set facts
+      set_fact:
+        become_user: "{{ ext_vars.SUDO_USER }}"
+        ansible_become_pass: "{{ ext_vars.SUDO_PASSWORD }}"
+
+    - debug: msg="become_user = {{ become_user }}" #, ansible_become_pass = {{ ansible_become_pass }}"
+
+  roles:
+    - barm0leykin.python
+
+
+- name: HOST_CONFIG
+  tags:
+    - common
+  hosts: all
+  strategy: mitogen_linear
+  become: yes
+  remote_user: ubuntu
+
+  vars:
+    # barm0leykin.common
+    config_users:
+      - ubuntu
+    private_ssh_keys:
+      - ~/.ssh/cloud
+    public_ssh_keys:
+      - ~/.ssh/id_rsa.pub
+      - ~/.ssh/cloud.pub
+
+    # barm0leykin.iptables
+    iptables:
+      disable_firewall: yes
+      enable_ping: yes
+      ports:
+        - 22
+
+  roles:
+    - barm0leykin.common
+    - barm0leykin.iptables
+    - geerlingguy.docker
